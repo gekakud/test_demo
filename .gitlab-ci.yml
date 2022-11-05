@@ -1,0 +1,39 @@
+stages:
+  - stop_existing_server
+  - deploy_to_ci_server
+
+
+Stop current:
+  variables:
+    GIT_STRATEGY: none
+  stage: stop_existing_server
+  script:
+    - echo "stop all CI image instances and clean CI docker images"
+    - docker stop $(docker ps | grep 'katana_web_demo' | awk '{print $1}') > /dev/null 2>&1 || FAILED=true
+    - docker rmi katana_web_demo > /dev/null 2>&1 || FAILED=true
+    - docker rmi $(docker images -f "dangling=true" -q) > /dev/null 2>&1 || FAILED=true
+    - docker rm $(docker ps -q -f status=exited) > /dev/null 2>&1 || FAILED=true
+  tags:
+    - d10_ci_linux_runner
+  rules:
+    - if: $BLACK_DUCK_WEEKLY == "True"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+
+
+Build:
+  variables:
+    GIT_DEPTH: 1
+  stage: deploy_to_ci_server
+  script:
+    - echo "Deploy new version on CI server"
+    - docker build -t katana_web_demo .
+    - docker run -d -p 8502:8502 katana_web_demo
+  tags:
+    - d10_ci_linux_runner
+  rules:
+    - if: $BLACK_DUCK_WEEKLY == "True"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
