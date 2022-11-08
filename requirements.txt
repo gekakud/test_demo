@@ -1,9 +1,8 @@
 streamlit
 streamlit-webrtc
-opencv-python-headless==4.5.1.48
-pydub
-streamlit-cropper
+# pydub
+# streamlit-cropper
 streamlit_option_menu
-streamlit-ace
-dnspython
-pandas
+# streamlit-ace
+# dnspython
+# pandas
